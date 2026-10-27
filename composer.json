@@ -1,0 +1,21 @@
+{
+    "name": "spotex/pay",
+    "description": "PHP client for the SpotEx Pay merchant API: checkouts, checkout sessions, payouts and webhook verification.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["spotex", "crypto", "payments", "bitcoin", "dogecoin", "merchant", "checkout", "webhooks"],
+    "homepage": "https://spotex.trade/docs/merchant",
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "SpotEx\\Pay\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "php tests/run.php"
+    }
+}
