@@ -81,6 +81,17 @@ $invoice = $spotex->createInvoice([
 // send your customer $invoice['url']; checkout.paid arrives with invoice_id when they pay
 ```
 
+## Subscriptions
+
+```php
+$plan = $spotex->createPlan(['name' => 'Monthly box', 'price' => '9.99', 'currency' => 'EUR', 'interval' => 'month']);
+// send SpotEx users $plan['url']: they subscribe from their balance, and each period comes as
+// checkout.paid with subscription_id; subscription.created, .past_due and .canceled say how each goes
+
+$active = $spotex->listSubscriptions(['status' => 'active']);
+$spotex->cancelSubscription($active['data'][0]['id']);
+```
+
 ## Webhooks
 
 Check the signature against the **raw** body before trusting anything in it:

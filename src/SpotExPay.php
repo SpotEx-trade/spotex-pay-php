@@ -14,7 +14,7 @@ namespace SpotEx\Pay;
  */
 class SpotExPay
 {
-    public const VERSION = '0.2.0';
+    public const VERSION = '0.3.0';
     public const DEFAULT_BASE_URL = 'https://spotex.trade/api/merchant/v1';
 
     /** @var string */
@@ -89,6 +89,42 @@ class SpotExPay
     public function simulateCheckout(string $id, string $outcome): array
     {
         return $this->request('POST', '/checkouts/' . rawurlencode($id) . '/simulate', ['outcome' => $outcome]);
+    }
+
+    /* ---------------------------------------------- plans and subscriptions */
+
+    /**
+     * A plan SpotEx users subscribe to from their balance. Live keys only.
+     * Params: name, price, currency, interval ('week', 'month' or 'year'). Its price never changes: a new price is a new plan.
+     */
+    public function createPlan(array $params): array
+    {
+        return $this->request('POST', '/plans', $params);
+    }
+
+    public function listPlans(): array
+    {
+        return $this->request('GET', '/plans');
+    }
+
+    public function retrieveSubscription(string $id): array
+    {
+        return $this->request('GET', '/subscriptions/' . rawurlencode($id));
+    }
+
+    /** Query: status ('active'|'past_due'|'canceled'), limit (max 100), before (an id). */
+    public function listSubscriptions(array $query = []): array
+    {
+        $query = array_filter($query, function ($v) {
+            return $v !== null;
+        });
+        return $this->request('GET', '/subscriptions' . ($query ? '?' . http_build_query($query) : ''));
+    }
+
+    /** No more charges; periods paid stay paid. */
+    public function cancelSubscription(string $id): array
+    {
+        return $this->request('POST', '/subscriptions/' . rawurlencode($id) . '/cancel');
     }
 
     /* --------------------------------------------------------- invoices */

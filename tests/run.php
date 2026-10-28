@@ -107,6 +107,20 @@ check('invoices: create with lines, retrieve, list and void go where the API ref
     same($seen[0]['body'], ['currency' => 'EUR', 'items' => [['description' => 'Logo', 'unit_price' => '300']]]);
 });
 
+check('plans and subscriptions go where the API reference says', function () {
+    $seen = [];
+    $s = new SpotExPay('sk_live_abc', ['base_url' => 'https://x.test/v1', 'transport' => recorder($seen, 200, ['id' => 'x'])]);
+    $s->createPlan(['name' => 'Monthly box', 'price' => '9.99', 'currency' => 'EUR', 'interval' => 'month']);
+    $s->listPlans();
+    $s->listSubscriptions(['status' => 'active', 'limit' => 10]);
+    $s->retrieveSubscription('sub1');
+    $s->cancelSubscription('sub1');
+    same(array_map(function ($r) {
+        return $r['method'] . ' ' . str_replace('https://x.test/v1', '', $r['url']);
+    }, $seen), ['POST /plans', 'GET /plans', 'GET /subscriptions?status=active&limit=10', 'GET /subscriptions/sub1', 'POST /subscriptions/sub1/cancel']);
+    same($seen[0]['body'], ['name' => 'Monthly box', 'price' => '9.99', 'currency' => 'EUR', 'interval' => 'month']);
+});
+
 check('a price in another currency goes as price and currency', function () {
     $seen = [];
     $spotex = new SpotExPay('sk_test_abc', ['transport' => recorder($seen, 201, ['id' => 'cs2', 'price' => '25.00', 'currency' => 'EUR', 'amount_usd' => null])]);
