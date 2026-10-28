@@ -76,7 +76,7 @@ class SpotExPay
         return $this->request('GET', '/checkouts/' . rawurlencode($id));
     }
 
-    /** Query: status ('paid'|'pending'), limit (max 100), before (an id). */
+    /** Query: status ('paid'|'released'|'pending'), limit (max 100), before (an id). */
     public function listCheckouts(array $query = []): array
     {
         $query = array_filter($query, function ($v) {
