@@ -1,5 +1,7 @@
 # SpotEx Pay for PHP
 
+[![tests](https://github.com/SpotEx-trade/spotex-pay-php/actions/workflows/tests.yml/badge.svg)](https://github.com/SpotEx-trade/spotex-pay-php/actions/workflows/tests.yml)
+
 Accept crypto on your website with [SpotEx Pay](https://spotex.trade/merchants): a hosted checkout or your own, signed webhooks, payouts, and a test mode to build against. PHP 7.4+, with the curl and json extensions; no other dependencies.
 
 - **0.5% per payment**, no setup or monthly fee

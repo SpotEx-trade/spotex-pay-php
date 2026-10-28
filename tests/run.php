@@ -1,6 +1,13 @@
 <?php
 // Plain tests, no PHPUnit needed: php tests/run.php
 
+// Any notice, warning or deprecation fails the run, so a new PHP version that
+// objects to something here is caught.
+error_reporting(E_ALL);
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    throw new \ErrorException($message, 0, $severity, $file, $line);
+});
+
 require __DIR__ . '/../src/SpotExPayException.php';
 require __DIR__ . '/../src/SignatureVerificationException.php';
 require __DIR__ . '/../src/Webhook.php';
@@ -176,6 +183,29 @@ check('refuses a webhook that was changed, signed with another secret, too old o
         Webhook::constructEvent(BODY, null, SECRET, 0);
     }, SignatureVerificationException::class, 'No SpotEx-Signature');
     same(Webhook::verify(BODY, Webhook::sign(BODY, SECRET), SECRET), true);
+});
+
+check('refuses to verify or sign without a secret: getenv() finding none must not let anyone in', function () {
+    // Signed with an empty key, as an attacker could when the secret is empty.
+    $forged = 't=1793071234,v1=' . hash_hmac('sha256', '1793071234.' . BODY, '');
+    throws(function () use ($forged) {
+        Webhook::constructEvent(BODY, $forged, '', 0);
+    }, \InvalidArgumentException::class, 'no webhook signing secret');
+    throws(function () use ($forged) {
+        Webhook::verify(BODY, $forged, (string) getenv('SPOTEX_NO_SUCH_VARIABLE'), 0);
+    }, \InvalidArgumentException::class);
+    throws(function () {
+        Webhook::sign(BODY, '');
+    }, \InvalidArgumentException::class);
+});
+
+check('a body that cannot be JSON is refused before anything is sent', function () {
+    $seen = [];
+    $s = new SpotExPay('sk_test_abc', ['transport' => recorder($seen)]);
+    throws(function () use ($s) {
+        $s->createCheckout(['amount_usd' => '1', 'coin' => 'DOGE', 'item' => "\xB1\x31"]);
+    }, \InvalidArgumentException::class, 'JSON');
+    same($seen, []);
 });
 
 echo $failed === 0 ? "\n$passed passed, 0 failed\n" : "\n$passed passed, $failed FAILED\n";

@@ -19,6 +19,7 @@ final class Webhook
      */
     public static function constructEvent(string $rawBody, ?string $signatureHeader, string $secret, int $toleranceSeconds = 300): array
     {
+        self::requireSecret($secret);
         if ($signatureHeader === null || $signatureHeader === '') {
             throw new SignatureVerificationException('No SpotEx-Signature header.');
         }
@@ -30,7 +31,7 @@ final class Webhook
             }
         }
         $t = $parts['t'] ?? '';
-        if (!ctype_digit($t) || ($parts['v1'] ?? '') === '') {
+        if (preg_match('/\A\d+\z/', $t) !== 1 || ($parts['v1'] ?? '') === '') {
             throw new SignatureVerificationException('The SpotEx-Signature header is not in the form t=...,v1=....');
         }
         if ($toleranceSeconds > 0 && abs(time() - (int) $t) > $toleranceSeconds) {
@@ -61,7 +62,19 @@ final class Webhook
     /** Signs a body as SpotEx does: for your own tests of a webhook handler. */
     public static function sign(string $body, string $secret, ?int $unix = null): string
     {
+        self::requireSecret($secret);
         $t = $unix ?? time();
         return 't=' . $t . ',v1=' . hash_hmac('sha256', $t . '.' . $body, $secret);
+    }
+
+    /**
+     * An empty key would accept a body anyone can sign, as happens when
+     * getenv() finds no secret and returns false: refuse it outright.
+     */
+    private static function requireSecret(string $secret): void
+    {
+        if ($secret === '') {
+            throw new \InvalidArgumentException('SpotEx Pay: no webhook signing secret. Pass the whsec_... secret from the Merchant Center (is SPOTEX_WEBHOOK_SECRET set?).');
+        }
     }
 }

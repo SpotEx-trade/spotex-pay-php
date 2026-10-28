@@ -143,6 +143,9 @@ class SpotExPay
             $json = json_encode(array_filter($body, function ($v) {
                 return $v !== null;
             }));
+            if ($json === false) {
+                throw new \InvalidArgumentException('SpotExPay: the request could not be sent as JSON: ' . json_last_error_msg() . '.');
+            }
             $headers[] = 'Content-Type: application/json';
         }
         if ($method === 'POST') {
@@ -177,11 +180,19 @@ class SpotExPay
         $raw = curl_exec($ch);
         if ($raw === false) {
             $reason = curl_error($ch);
-            curl_close($ch);
+            self::closeCurl($ch);
             throw new SpotExPayException(0, 'network_error', 'Could not reach SpotEx Pay: ' . $reason . '. Retry with the same idempotency key.');
         }
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        curl_close($ch);
+        self::closeCurl($ch);
         return [$status, (string) $raw];
+    }
+
+    /** PHP 8 frees the handle by itself, and 8.5 deprecates curl_close(). */
+    private static function closeCurl($ch): void
+    {
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch);
+        }
     }
 }
