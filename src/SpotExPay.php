@@ -65,7 +65,7 @@ class SpotExPay
 
     /* -------------------------------------------------------- checkouts */
 
-    /** An on-chain checkout to show in your own design. Params: price with currency or amount_usd, coin, item, order_id? */
+    /** An on-chain checkout to show in your own design. Params: price with currency or amount_usd, coin, network? (a token on several chains, like USDT), item, order_id? */
     public function createCheckout(array $params, ?string $idempotencyKey = null): array
     {
         return $this->request('POST', '/checkouts', $params, $idempotencyKey);
