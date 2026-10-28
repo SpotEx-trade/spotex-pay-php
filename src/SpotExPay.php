@@ -91,6 +91,38 @@ class SpotExPay
         return $this->request('POST', '/checkouts/' . rawurlencode($id) . '/simulate', ['outcome' => $outcome]);
     }
 
+    /* --------------------------------------------------------- invoices */
+
+    /**
+     * An invoice with a page of its own: send your customer its 'url'. Live keys only.
+     * Params: currency, items ([['description', 'quantity'? (1), 'unit_price']], 1 to 50), title?,
+     * customer_name?, customer_email?, memo?, due_date? (YYYY-MM-DD)
+     */
+    public function createInvoice(array $params, ?string $idempotencyKey = null): array
+    {
+        return $this->request('POST', '/invoices', $params, $idempotencyKey);
+    }
+
+    public function retrieveInvoice(string $id): array
+    {
+        return $this->request('GET', '/invoices/' . rawurlencode($id));
+    }
+
+    /** Query: limit (max 100), before (an id). */
+    public function listInvoices(array $query = []): array
+    {
+        $query = array_filter($query, function ($v) {
+            return $v !== null;
+        });
+        return $this->request('GET', '/invoices' . ($query ? '?' . http_build_query($query) : ''));
+    }
+
+    /** Cancel an unpaid invoice: its page stops taking payments. */
+    public function voidInvoice(string $id): array
+    {
+        return $this->request('POST', '/invoices/' . rawurlencode($id) . '/void');
+    }
+
     /* ------------------------------------------------- coins and balance */
 
     /** The coins you accept, their USD rate, and which can be sent from any wallet ('onchain'). */

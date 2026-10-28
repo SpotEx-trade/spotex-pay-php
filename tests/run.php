@@ -92,6 +92,21 @@ check('creates a checkout session: bearer key, JSON body, the idempotency key gi
     same($seen[0]['body'], ['amount_usd' => '25.00', 'item' => 'Gift box', 'order_id' => '1043'], 'nulls dropped');
 });
 
+check('invoices: create with lines, retrieve, list and void go where the API reference says', function () {
+    $seen = [];
+    $s = new SpotExPay('sk_live_abc', ['base_url' => 'https://x.test/v1', 'transport' => recorder($seen, 200, ['id' => 'inv1', 'url' => 'https://spotex.trade/invoice/inv1'])]);
+    $made = $s->createInvoice(['currency' => 'EUR', 'items' => [['description' => 'Logo', 'unit_price' => '300']]], 'invoice-2041');
+    same($made['url'], 'https://spotex.trade/invoice/inv1');
+    $s->retrieveInvoice('inv1');
+    $s->listInvoices(['limit' => 5]);
+    $s->voidInvoice('inv1');
+    same(array_map(function ($r) {
+        return $r['method'] . ' ' . str_replace('https://x.test/v1', '', $r['url']);
+    }, $seen), ['POST /invoices', 'GET /invoices/inv1', 'GET /invoices?limit=5', 'POST /invoices/inv1/void']);
+    same(header_of($seen[0], 'Idempotency-Key'), 'invoice-2041');
+    same($seen[0]['body'], ['currency' => 'EUR', 'items' => [['description' => 'Logo', 'unit_price' => '300']]]);
+});
+
 check('a price in another currency goes as price and currency', function () {
     $seen = [];
     $spotex = new SpotExPay('sk_test_abc', ['transport' => recorder($seen, 201, ['id' => 'cs2', 'price' => '25.00', 'currency' => 'EUR', 'amount_usd' => null])]);
