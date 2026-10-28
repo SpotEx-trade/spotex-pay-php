@@ -7,14 +7,14 @@ namespace SpotEx\Pay;
  * decimal strings: add them with bcmath, never floats.
  *
  *   $spotex = new \SpotEx\Pay\SpotExPay(getenv('SPOTEX_KEY'));
- *   $session = $spotex->createCheckoutSession(['amount_usd' => '25.00', 'item' => 'Gift box'], 'order-1043');
+ *   $session = $spotex->createCheckoutSession(['price' => '25.00', 'currency' => 'EUR', 'item' => 'Gift box'], 'order-1043');
  *   header('Location: ' . $session['url']);
  *
  * API reference: https://spotex.trade/docs/merchant
  */
 class SpotExPay
 {
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.2.0';
     public const DEFAULT_BASE_URL = 'https://spotex.trade/api/merchant/v1';
 
     /** @var string */
@@ -51,7 +51,7 @@ class SpotExPay
 
     /**
      * One order paid on SpotEx's own page: send the buyer to its 'url'.
-     * Params: amount_usd, item, order_id?, return_url? (on your website), expires_in_minutes?
+     * Params: price with currency ("EUR", "JPY"...) or amount_usd, item, order_id?, return_url? (on your website), expires_in_minutes?
      */
     public function createCheckoutSession(array $params, ?string $idempotencyKey = null): array
     {
@@ -65,7 +65,7 @@ class SpotExPay
 
     /* -------------------------------------------------------- checkouts */
 
-    /** An on-chain checkout to show in your own design. Params: amount_usd, coin, item, order_id? */
+    /** An on-chain checkout to show in your own design. Params: price with currency or amount_usd, coin, item, order_id? */
     public function createCheckout(array $params, ?string $idempotencyKey = null): array
     {
         return $this->request('POST', '/checkouts', $params, $idempotencyKey);

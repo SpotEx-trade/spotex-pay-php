@@ -92,6 +92,14 @@ check('creates a checkout session: bearer key, JSON body, the idempotency key gi
     same($seen[0]['body'], ['amount_usd' => '25.00', 'item' => 'Gift box', 'order_id' => '1043'], 'nulls dropped');
 });
 
+check('a price in another currency goes as price and currency', function () {
+    $seen = [];
+    $spotex = new SpotExPay('sk_test_abc', ['transport' => recorder($seen, 201, ['id' => 'cs2', 'price' => '25.00', 'currency' => 'EUR', 'amount_usd' => null])]);
+    $s = $spotex->createCheckoutSession(['price' => '25.00', 'currency' => 'EUR', 'item' => 'Gift box']);
+    same($s['currency'], 'EUR');
+    same($seen[0]['body'], ['price' => '25.00', 'currency' => 'EUR', 'item' => 'Gift box']);
+});
+
 check('makes an idempotency key for a POST when none is given, and none for a GET', function () {
     $seen = [];
     $spotex = new SpotExPay('sk_live_abc', ['base_url' => 'https://x.test/v1', 'transport' => recorder($seen, 200, ['data' => []])]);

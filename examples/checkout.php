@@ -7,11 +7,12 @@ use SpotEx\Pay\SpotExPay;
 use SpotEx\Pay\SpotExPayException;
 
 $spotex = new SpotExPay(getenv('SPOTEX_KEY'));
-$order = ['id' => '1043', 'total' => '25.00', 'name' => 'Gift box']; // from your database
+$order = ['id' => '1043', 'total' => '25.00', 'currency' => 'USD', 'name' => 'Gift box']; // from your database
 
 try {
     $session = $spotex->createCheckoutSession([
-        'amount_usd' => $order['total'],
+        'price' => $order['total'],
+        'currency' => $order['currency'],
         'item' => $order['name'],
         'order_id' => $order['id'],
         'return_url' => 'https://yourshop.com/orders/' . $order['id'] . '/thanks',

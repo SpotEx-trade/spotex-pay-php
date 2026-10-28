@@ -44,7 +44,8 @@ use SpotEx\Pay\SpotExPay;
 $spotex = new SpotExPay(getenv('SPOTEX_KEY'));
 
 $session = $spotex->createCheckoutSession([
-    'amount_usd' => '25.00',
+    'price' => '25.00',
+    'currency' => 'EUR', // or USD, GBP, JPY... any of https://spotex.trade/docs/merchant#currencies
     'item' => 'Gift box',
     'order_id' => '1043',
     'return_url' => 'https://yourshop.com/thanks', // must be on your merchant website
@@ -53,10 +54,12 @@ $session = $spotex->createCheckoutSession([
 header('Location: ' . $session['url'], true, 303);
 ```
 
+Your price becomes dollars at the exchange rate when the buyer opens the checkout. `'amount_usd' => '25.00'` in place of `price` and `currency` still works, for a price in dollars.
+
 ## Or in your own design
 
 ```php
-$checkout = $spotex->createCheckout(['amount_usd' => '25.00', 'coin' => 'DOGE', 'item' => 'Gift box', 'order_id' => '1043']);
+$checkout = $spotex->createCheckout(['price' => '25.00', 'currency' => 'EUR', 'coin' => 'DOGE', 'item' => 'Gift box', 'order_id' => '1043']);
 // show $checkout['address'] and $checkout['amount'], then wait for the webhook
 // or poll $spotex->retrieveCheckout($checkout['id'])
 ```
